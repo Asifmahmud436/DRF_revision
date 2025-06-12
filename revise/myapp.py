@@ -16,8 +16,8 @@ def get_data(id=None):
 
 def post_data():
     data = {
-        'name':'Jingalala',
-        'roll':2000,
+        'name':'Rohit',
+        'roll':100,
         'city': "Mohesshori"
     }
     
@@ -43,4 +43,4 @@ def delete_data():
     response = requests.delete(url=URL, data=json_data)
     print(response.json())
     
-delete_data()
+post_data()

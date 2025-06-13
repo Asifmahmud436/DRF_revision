@@ -1,9 +1,9 @@
 from django.contrib import admin
 from django.urls import path
-from api.views import StudentApiView
+from api import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('students/',StudentApiView.as_view()),
-    path('students/<int:pk>/',StudentApiView.as_view()),
+    path('students/',views.LCstudentApiView.as_view()),
+    path('students/<int:pk>/',views.RUDstudentApiView.as_view()),
 ]

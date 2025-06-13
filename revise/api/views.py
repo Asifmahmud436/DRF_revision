@@ -1,52 +1,50 @@
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import render
 from .models import Student
 from .serializer import StudentSerializer
-import io
-from rest_framework.parsers import JSONParser
-from rest_framework.renderers import JSONRenderer
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
 
-@csrf_exempt
-def student_api(request):
-    stream = io.BytesIO(request.body)
-    pythonData = JSONParser().parse(stream)
-    
-    if request.method == "GET":
-        id = pythonData.get('id',None)
-        
+class StudentApiView(APIView):
+    def get(self,request,pk=None,format=None):
+        id = pk
         if id is not None:
             student = Student.objects.get(id=id)
-            serializer = StudentSerializer(student)
-        else:
-            student = Student.objects.all()
-            serializer = StudentSerializer(student,many=True)
-        json_data = JSONRenderer().render(serializer.data)
-        
-    if request.method == "POST":
-        serializer = StudentSerializer(data = pythonData)
+            serialzier = StudentSerializer(student)
+            return Response(serialzier.data)
+        student = Student.objects.all()
+        serialzier = StudentSerializer(student,many=True)
+        return Response(serialzier.data)
+    
+    def post(self, request,format=None):
+        serializer = StudentSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
-            response = {"Message":"New student added."}
-            json_data = JSONRenderer().render(response)
-        else:
-            json_data = JSONRenderer().render(serializer.errors)
-            
-    if request.method == 'PUT':
-        id = pythonData.get('id')
-        student = Student.objects.get(id=id)
-        serializer = StudentSerializer(student,data = pythonData,partial=True)
+            return Response({'message':'data created!'},status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def put(self, request,pk,format=None):
+        id = pk
+        student = Student.objects.get(id = id)
+        serializer = StudentSerializer(student)
         if serializer.is_valid():
             serializer.save()
-            response = {"Message":"Student Data Updated!"}
-            json_data = JSONRenderer().render(response)
-        else:
-            json_data = JSONRenderer().render(serializer.errors)
-
-    if request.method == 'DELETE':
-        id = pythonData.get('id')
-        student = Student.objects.get(id=id)
+            return Response({"message":"details updated!"},status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self,request,pk, format=None):
+        id = pk
+        student = Student.objects.get(id = id)
+        serializer = StudentSerializer(student,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message":"partially details updated!"},status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk, format=None):
+        id = pk
+        student = Student.objects.get(id = id)
         student.delete()
-        response = {"Message":"Student Deleted"}
-        json_data = JSONRenderer().render(response)
+        return Response({"message":"Student deleted!"},status=status.HTTP_200_OK)
+        
 
-    return HttpResponse(json_data,content_type = 'application/json')
